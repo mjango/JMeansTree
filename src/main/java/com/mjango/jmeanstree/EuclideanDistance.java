@@ -25,9 +25,18 @@
 package com.mjango.jmeanstree;
 
 /**
- *
+ * An implementation of {@link com.mjango.jmeanstree.IDistanceCalculator} for calculating the
+ * Euclidean distance between two Number-based IVect instances.
  */
 public class EuclideanDistance implements IDistanceCalculator<Number> {
+
+    /**
+     * Calculates the Euclidean distance between two Number-based IVects.
+     *
+     * @param v1 first IVect instance for distance calculation.
+     * @param v2 second IVect instance for distance calculation.
+     * @return Euclidean distance between the two IVects.
+     */
     @Override
     public double calculateDistance(IVect<Number> v1, IVect<Number> v2) {
         double distance = 0;

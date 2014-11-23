@@ -27,22 +27,67 @@ package com.mjango.jmeanstree;
 import java.util.List;
 
 /**
- *
+ * Interface for a cluster of {@link com.mjango.jmeanstree.IVect}.  IVects assigned to IClusters
+ * either manually, or based a distance measurement as determined by an
+ * {@link com.mjango.jmeanstree.IDistanceCalculator}.
  */
 public interface ICluster<T> extends Iterable<IVect<T>> {
+    /**
+     * Add an IVect to this cluster.
+     *
+     * @param vect IVect instance to add.
+     */
     void add(IVect<T> vect);
 
+    /**
+     * Get this ICluster's parent, if one exists.  The root cluster in a K-Means tree does not have
+     * a parent.
+     *
+     * @return this ICluster's parent, or <code>null</code> if it is a root cluster.
+     */
     ICluster<T> getParent();
 
+    /**
+     * Get the number of IVects in this cluster.
+     *
+     * @return number of IVects in this cluster.
+     */
     int size();
 
+    /**
+     * Get an IVect from this cluster.
+     *
+     * @param index index of IVect.
+     * @return IVect at the given index.
+     */
     IVect<T> get(int index);
 
+    /**
+     * Get an IVect representing the centroid of this cluster.
+     *
+     * @return centroid of this cluster.
+     */
     IVect<T> getCentroid();
 
+    /**
+     * Get K, or the expected number of sub-clusters.
+     *
+     * @return K.
+     */
     int getK();
 
+    /**
+     * Get the sub-clusters calculated from this cluster.  If the sub-clusters have not yet been
+     * calculated, this will return an empty list.
+     *
+     * @return the sub-clusters from this cluster.
+     */
     List<? extends ICluster<T>> getSubClusters();
 
+    /**
+     * Calculate the sub-clusters for this cluster.
+     *
+     * @return the calculated sub-clusters from this cluster.
+     */
     List<? extends ICluster<T>> calculate();
 }

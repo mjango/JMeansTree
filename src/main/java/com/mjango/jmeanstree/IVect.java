@@ -25,10 +25,22 @@
 package com.mjango.jmeanstree;
 
 /**
- *
+ * Interface for cluster-able vectors.
  */
 public interface IVect<T> extends Iterable<T> {
+
+    /**
+     * Get the number of dimensions for this vector.
+     *
+     * @return number of dimensions for this vector.
+     */
     int getDimensions();
 
+    /**
+     * Get the value at a given index.
+     *
+     * @param index index of value.
+     * @return value from index.
+     */
     T get(int index);
 }

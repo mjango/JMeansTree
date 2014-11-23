@@ -25,8 +25,16 @@
 package com.mjango.jmeanstree;
 
 /**
- *
+ * Interface for distance calculations between two IVect instances.
  */
 public interface IDistanceCalculator<T> {
+
+    /**
+     * Calculate the distance between two IVect instances.
+     *
+     * @param v1 first IVect instance for distance calculation.
+     * @param v2 second IVect instance for distance calculation.
+     * @return a value representing the distance between the two IVect instances.
+     */
     double calculateDistance(IVect<T> v1, IVect<T> v2);
 }
