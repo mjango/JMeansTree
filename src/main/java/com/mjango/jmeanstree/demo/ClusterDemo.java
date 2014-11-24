@@ -24,10 +24,7 @@
 
 package com.mjango.jmeanstree.demo;
 
-import com.mjango.jmeanstree.Cluster;
-import com.mjango.jmeanstree.EuclideanDistance;
-import com.mjango.jmeanstree.IVect;
-import com.mjango.jmeanstree.Vect;
+import com.mjango.jmeanstree.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,22 +37,44 @@ import java.util.List;
 public class ClusterDemo {
     private final Panel panel;
     private final JFrame frame;
+    private KMeansTree<Number> tree;
 
     public ClusterDemo() {
         panel = new Panel(8);
         frame = new JFrame();
         frame.add(panel);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        tree = null;
         generateNewClusterSpace();
     }
 
     public void generateNewClusterSpace() {
-        final Cluster cluster = new Cluster(2, 10);
+        tree = new KMeansTree<>(new Cluster(2, 6), 10);
         for (int i = 0; i < 20000; i++) {
-            cluster.add(new Vect(Math.random(), Math.random()));
+            tree.add(new Vect(Math.random(), Math.random()));
         }
-        cluster.calculate();
-        panel.setCluster(cluster);
+        tree.calculate();
+        panel.setCluster((Cluster) tree.getRoot());
+    }
+
+    public void printNearestNeighbor(int x, int y) {
+        if (tree == null) {
+            return;
+        }
+
+        double width = panel.getWidth();
+        double height = panel.getHeight();
+
+        double d1 = x / width;
+        double d2 = y / height;
+
+        int[] comparisonCount = new int[]{0};
+        IVect<Number> nearestNeighbor = tree.getNearestNeighbor(new Vect(d1, d2), comparisonCount);
+        System.out.println("x=" + x + ", y=" + y + ", nearest x=" +
+                           String.format("%.4f", width * nearestNeighbor.get(0).doubleValue()) +
+                           ", nearest y=" +
+                           String.format("%.4f", height * nearestNeighbor.get(1).doubleValue()) +
+                           ", total comparisons=" + comparisonCount[0]);
     }
 
     public void show() {
@@ -78,7 +97,16 @@ public class ClusterDemo {
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    generateNewClusterSpace();
+                    switch (e.getButton()) {
+                        case MouseEvent.BUTTON1:
+                            printNearestNeighbor(e.getX(), e.getY());
+                            break;
+                        case MouseEvent.BUTTON3:
+                            generateNewClusterSpace();
+                            break;
+                        default:
+                            break;
+                    }
                 }
             });
             addMouseWheelListener(new MouseAdapter() {

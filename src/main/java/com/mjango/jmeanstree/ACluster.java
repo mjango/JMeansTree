@@ -32,17 +32,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class ACluster<T> implements ICluster<T> {
     protected static final int MAX_THREADS = Runtime.getRuntime().availableProcessors();
     protected final ACluster<T> parent;
-    protected final int k;
+    protected final IDistanceCalculator<T> distanceCalculator;
     protected final List<IVect<T>> vects;
+    protected final int k;
     protected final int dimensions;
     protected final List<ICluster<T>> subClusters;
     protected final AtomicInteger iterations;
     protected IVect<T> centroid;
     protected AtomicBoolean calculated;
-    protected final IDistanceCalculator<T> distanceCalculator;
 
-    public ACluster(int dimensions, int k, IDistanceCalculator<T> distanceCalculator)
-    {
+    public ACluster(int dimensions, int k, IDistanceCalculator<T> distanceCalculator) {
         this(null, dimensions, k, distanceCalculator);
     }
 
@@ -75,8 +74,7 @@ public abstract class ACluster<T> implements ICluster<T> {
     }
 
     @Override
-    public ICluster<T> getParent()
-    {
+    public ICluster<T> getParent() {
         return parent;
     }
 
@@ -88,6 +86,52 @@ public abstract class ACluster<T> implements ICluster<T> {
     @Override
     public synchronized IVect<T> get(int index) {
         return vects.get(index);
+    }
+
+    @Override
+    public IVect<T> getNearestNeighbor(IVect<T> vect) {
+        return getNearestNeighbor(vect, new int[]{0});
+    }
+
+    @Override
+    public IVect<T> getNearestNeighbor(IVect<T> vect, int[] compareCount) {
+        Double minDistance = null;
+
+        if (!subClusters.isEmpty()) {
+
+            // There are sub-clusters, so find the sub-cluster with the nearest centroid, then
+            // return its nearest neighbor.
+            ICluster<T> nearestSubCluster = null;
+            for (ICluster<T> subCluster : subClusters) {
+                double distance = distanceCalculator.calculateDistance(
+                        vect,
+                        subCluster.getCentroid());
+                compareCount[0]++;
+                if (minDistance == null || distance < minDistance) {
+                    minDistance = distance;
+                    nearestSubCluster = subCluster;
+                }
+            }
+
+            // Calling getNearestNeighbor on the nearest sub-cluster will eventually drill down
+            // to the maximum depth, at which point that sub-cluster's actual members will be
+            // compared.
+            return nearestSubCluster != null ?
+                   nearestSubCluster.getNearestNeighbor(vect, compareCount) :
+                   null;
+        } else {
+            // There aren't any sub-clusters, so find the vect's actual nearest neighbor.
+            IVect<T> nearestNeighbor = null;
+            for (IVect<T> memberVect : vects) {
+                double distance = distanceCalculator.calculateDistance(vect, memberVect);
+                compareCount[0]++;
+                if (minDistance == null || distance < minDistance) {
+                    minDistance = distance;
+                    nearestNeighbor = memberVect;
+                }
+            }
+            return nearestNeighbor;
+        }
     }
 
     @Override
@@ -121,17 +165,19 @@ public abstract class ACluster<T> implements ICluster<T> {
         return iterations.get();
     }
 
+    public int getDimensions() {
+        return dimensions;
+    }
+
     @Override
-    public List<? extends ICluster<T>> calculate()
-    {
+    public List<? extends ICluster<T>> calculate() {
         return calculate(true);
     }
 
     protected abstract ICluster<T> createSubCluster();
 
     protected List<? extends ICluster<T>> calculate(boolean updateCalculated) {
-        if(calculated.get())
-        {
+        if (calculated.get()) {
             return getSubClusters();
         }
 
@@ -141,7 +187,7 @@ public abstract class ACluster<T> implements ICluster<T> {
         List<IVect<T>> means = new ArrayList<>();
         if (subClusters.isEmpty()) {
             synchronized (this) {
-                for (int i = 0; i < k; i++) {
+                for (int i = 0; i < k && i < vects.size(); i++) {
                     means.add(vects.get(i));
                 }
             }
@@ -193,7 +239,7 @@ public abstract class ACluster<T> implements ICluster<T> {
         if (!stable) {
             calculate(false);
         }
-        if(updateCalculated) {
+        if (updateCalculated) {
             calculated.set(true);
         }
         return getSubClusters();
@@ -213,7 +259,7 @@ public abstract class ACluster<T> implements ICluster<T> {
             IVect<T> nearestMean = null;
             Double minDistance = null;
             for (IVect<T> mean : means) {
-                double distance =  distanceCalculator.calculateDistance(vect, mean);
+                double distance = distanceCalculator.calculateDistance(vect, mean);
                 if (minDistance == null || distance < minDistance) {
                     minDistance = distance;
                     nearestMean = mean;

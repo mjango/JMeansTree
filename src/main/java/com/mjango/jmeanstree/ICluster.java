@@ -63,6 +63,24 @@ public interface ICluster<T> extends Iterable<IVect<T>> {
     IVect<T> get(int index);
 
     /**
+     * Get a vector's nearest neighbor from this cluster (or one of its sub-clusters).
+     *
+     * @param vect vector of interest.
+     * @return the vector's nearest neighbor.
+     */
+    IVect<T> getNearestNeighbor(IVect<T> vect);
+
+    /**
+     * Get a vector's nearest neighbor from this cluster (or one of its sub-clusters).
+     *
+     * @param vect         vector of interest.
+     * @param compareCount a 1-element int array to track number of comparisons used in finding
+     *                     the nearest neighbor.
+     * @return the vector's nearest neighbor.
+     */
+    IVect<T> getNearestNeighbor(IVect<T> vect, int[] compareCount);
+
+    /**
      * Get an IVect representing the centroid of this cluster.
      *
      * @return centroid of this cluster.
@@ -75,6 +93,13 @@ public interface ICluster<T> extends Iterable<IVect<T>> {
      * @return K.
      */
     int getK();
+
+    /**
+     * Get the vector dimensions.
+     *
+     * @return the vector dimensions.
+     */
+    int getDimensions();
 
     /**
      * Get the sub-clusters calculated from this cluster.  If the sub-clusters have not yet been
